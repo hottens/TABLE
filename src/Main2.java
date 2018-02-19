@@ -12,7 +12,7 @@ public class Main2 {
 
         int m = Integer.parseInt(temp[0]);
         int n = Integer.parseInt(temp[1]);
-        int index = Integer.parseInt(temp[2]);
+        int index = Integer.parseInt(temp[2])-1;
         int iCounter = 0;
 
         Map<Integer,Integer> dict = new HashMap<>();
@@ -31,20 +31,20 @@ public class Main2 {
 //        }
         int p = min*(min+1)/2;
         int dir = 1;
-        int startpoint = 0;
+        int startpoint = 1;
         if(index < p) {
             if (index > p - index){
                 dir = -1;
-                startpoint = p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1));
+                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1)));
                 index = p - index;
             }
         } else {
             if(m*n - index < index - p){
-                startpoint = m*n + 1;
+                startpoint = m*n;
                 dir = -1;
                 index = m*n - index;
             } else {
-                startpoint = p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1));
+                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1)));
                 index = index - p;
             }
         }
@@ -52,25 +52,24 @@ public class Main2 {
         System.out.println("startpoint: " + startpoint + " index: " + index);
         int i = startpoint;
 
-        while(index > 0){
-
-            i+=dir;
+        while(i >= 1 && i <= m*n){
 
             System.out.println(index + " : " + i);
-            for(int j = 1; j<(i/2+1); j++){
-                if(j>i/j) break;
+            for(int n_i = 1; 2*n_i<Math.min(i,2*max); n_i++){
+                int m_i = i/n_i;
+                if(i%n_i==0 && m_i <= max){
 
-                if(i%j==0){
-
-                    int highFactor = i/j;
-                    System.out.println(i + " % " + j + " = " + i%j);
-                    if(j==highFactor) index --;
+                    System.out.println(i + " % " + n_i + " = " + i%n_i);
+                    if(n_i==m_i) index --;
                     else {
-                        if(j <= min && highFactor <= max) index--;
-                        if(highFactor <= min) index--;
+                        if(n_i <= min) index--;
+                        if(m_i <= min) index--;
                     }
                 }
             }
+            if(index <= 0) break;
+
+            i+=dir;
         }
         System.out.println(i);
 
