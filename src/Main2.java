@@ -3,7 +3,15 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.*;
 
+/*
+This algorithm will find the k'th position of all sorted numbers in a m*n table
+where (m_i,n_j) = m_i*n_j.
+It does so by iterating over some of the numbers between 1 and m*n.
+For each of these numbers the amount of occurrences in the m*n table is calculated.
+If the addition of all these occurrences exceeds our k, we found the right number.
+ */
 public class Main2 {
+    static List<Integer> primes = new ArrayList<>();
     public static void main(String[] args) throws Exception {
         InputStreamReader reader = new InputStreamReader(System.in);
         BufferedReader in = new BufferedReader(reader);
@@ -13,29 +21,24 @@ public class Main2 {
         int m = Integer.parseInt(temp[0]);
         int n = Integer.parseInt(temp[1]);
         int index = Integer.parseInt(temp[2])-1;
-        int iCounter = 0;
-
-        Map<Integer,Integer> dict = new HashMap<>();
 
         int max = Math.max(m,n);
         int min = Math.min(m,n);
 
+        primes = sieveOfEratosthenes(max);
+
         Instant before = Instant.now();
 
-//        for(int i = 1; i <= max; i++) {
-//            for (int j = 1; j <= Math.min(i,min); j++) {
-//                int value = dict.get(i * j) == null ? 0 : dict.get(i * j);
-//                if (i == j || i > min) dict.put(i * j, 1 + value);
-//                else dict.put(i * j, 2 + value);
-//            }
-//        }
+        // Choose best position to start counting
+        // This could either be (1,1), (m,n) or some fixed position p,
+        // which we can calculate from a N*N matrix, and also its corresponding value
         int p = min*(min+1)/2;
         int dir = 1;
         int startpoint = 1;
         if(index < p) {
             if (index > p - index){
                 dir = -1;
-                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1)));
+                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p/min)+1)*((p/min)+1) - (p/min)+1));
                 index = p - index;
             }
         } else {
@@ -44,7 +47,7 @@ public class Main2 {
                 dir = -1;
                 index = m*n - index;
             } else {
-                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p+1)/min)*((p+1)/min) - (p+1)));
+                startpoint = dir + (p%min == 0 ? (p/min)*(p/min) : (((p/min)+1)*((p/min)+1) - (p/min)+1));
                 index = index - p;
             }
         }
@@ -55,18 +58,7 @@ public class Main2 {
         while(i >= 1 && i <= m*n){
 
             System.out.println(index + " : " + i);
-            for(int n_i = 1; 2*n_i<Math.min(i,2*max); n_i++){
-                int m_i = i/n_i;
-                if(i%n_i==0 && m_i <= max){
-
-                    System.out.println(i + " % " + n_i + " = " + i%n_i);
-                    if(n_i==m_i) index --;
-                    else {
-                        if(n_i <= min) index--;
-                        if(m_i <= min) index--;
-                    }
-                }
-            }
+            index -= calculateDivisors2Of(i,min,max);
             if(index <= 0) break;
 
             i+=dir;
@@ -93,22 +85,77 @@ public class Main2 {
         System.out.println(after.getEpochSecond() - before.getEpochSecond());
     }
 
+    private static int calculateDivisorsOf(int i, int min, int max) {
+        int nDivisors = 0;
+        int incrementer = 1+i%2;
+        for(int n_i = 1; 2*n_i<Math.min(i,2*max); n_i+=incrementer){
+            int m_i = i/n_i;
+            if(i%n_i==0 && m_i <= max){
+
+                System.out.println(i + " % " + n_i + " = " + i%n_i);
+                if(n_i==m_i) nDivisors++;
+                else {
+                    if(n_i <= min) nDivisors++;
+                    if(m_i <= min) nDivisors++;
+                }
+            }
+        }
+        return nDivisors;
+    }
+
+    private static int calculateDivisors2Of(int i, int min, int max){
+        //primes.forEach(p -> System.out.println(p));
+        ArrayList<Integer> pfactors = new ArrayList<>();
+
+        for(int x = i; x>1;){
+            int x1 = x;
+            int curPrime = primes.stream().filter(p -> x1%p==0).findFirst().get();
+            pfactors.add(curPrime);
+            x /= curPrime;
+        }
+        //pfactors.forEach(p -> System.out.println(p));
+        Set<Integer> factors = permutate(pfactors, (int)Math.sqrt(i));
+        int result = 0;
+        for(int f : factors){
+            if(i/f <= max) result ++;
+            if(i/f <= min) result ++;
+        }
+
+        return result;
+    }
+
     public static List<Integer> sieveOfEratosthenes(int n) {
-        boolean prime[] = new boolean[n + 1];
+        int max = (int)Math.sqrt(n);
+        boolean prime[] = new boolean[max + 1];
         Arrays.fill(prime, true);
-        for (int p = 2; p * p <= n; p++) {
+        for (int p = 2; p * p <= max; p++) {
             if (prime[p]) {
-                for (int i = p * 2; i <= n; i += p) {
+                for (int i = p * 2; i <= max; i += p) {
                     prime[i] = false;
                 }
             }
         }
         List<Integer> primeNumbers = new LinkedList<>();
-        for (int i = 0; i <= n; i++) {
-            if (prime[i]) {
+        for (int i = 2; i <= max; i++) {
+            if (prime[i] && n%i==0) {
                 primeNumbers.add(i);
             }
         }
         return primeNumbers;
+    }
+
+    private static Set<Integer> permutate(List<Integer> list, int max) {
+        Set<Integer> result = new HashSet<>();
+        result.add(1);
+
+        for (int i : list) {
+            List<Integer> add = new ArrayList<>();
+            for(int r : result)
+                if(r*i <= max) add.add(r*i);
+
+            result.addAll(add);
+            result.add(i);
+        }
+        return result;
     }
 }
