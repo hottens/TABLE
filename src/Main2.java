@@ -25,7 +25,8 @@ public class Main2 {
         int max = Math.max(m,n);
         int min = Math.min(m,n);
 
-        primes = sieveOfEratosthenes(max);
+        primes = sieveOfEratosthenes(m*n);
+        //primes.forEach(p->System.out.println(p));
 
         Instant before = Instant.now();
 
@@ -52,12 +53,12 @@ public class Main2 {
             }
         }
 
-        System.out.println("startpoint: " + startpoint + " index: " + index);
+        //System.out.println("startpoint: " + startpoint + " index: " + index);
         int i = startpoint;
 
         while(i >= 1 && i <= m*n){
 
-            System.out.println(index + " : " + i);
+            //System.out.println(index + " : " + i);
             index -= calculateDivisors2Of(i,min,max);
             if(index <= 0) break;
 
@@ -109,23 +110,23 @@ public class Main2 {
 
         for(int x = i; x>1;){
             int x1 = x;
-            int curPrime = primes.stream().filter(p -> x1%p==0).findFirst().get();
-            pfactors.add(curPrime);
-            x /= curPrime;
+            Optional<Integer> curPrime = primes.stream().filter(p -> x1%p==0).findFirst();
+            if(curPrime.isPresent()){
+                pfactors.add(curPrime.get());
+                x /= curPrime.get();
+            } else break;
         }
         //pfactors.forEach(p -> System.out.println(p));
-        Set<Integer> factors = permutate(pfactors, (int)Math.sqrt(i));
-        int result = 0;
-        for(int f : factors){
-            if(i/f <= max) result ++;
+        Set<Integer> factors = permutate(pfactors, max);
+        int result = i<=max ? 1 : 0;
+        for(int f : factors)
             if(i/f <= min) result ++;
-        }
 
         return result;
     }
 
     public static List<Integer> sieveOfEratosthenes(int n) {
-        int max = (int)Math.sqrt(n);
+        int max = (int) Math.sqrt(n);
         boolean prime[] = new boolean[max + 1];
         Arrays.fill(prime, true);
         for (int p = 2; p * p <= max; p++) {
@@ -137,7 +138,7 @@ public class Main2 {
         }
         List<Integer> primeNumbers = new LinkedList<>();
         for (int i = 2; i <= max; i++) {
-            if (prime[i] && n%i==0) {
+            if (prime[i]) {
                 primeNumbers.add(i);
             }
         }
@@ -146,8 +147,6 @@ public class Main2 {
 
     private static Set<Integer> permutate(List<Integer> list, int max) {
         Set<Integer> result = new HashSet<>();
-        result.add(1);
-
         for (int i : list) {
             List<Integer> add = new ArrayList<>();
             for(int r : result)
