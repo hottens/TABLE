@@ -28,8 +28,6 @@ public class Main2 {
         primes = sieveOfEratosthenes(m*n);
         //primes.forEach(p->System.out.println(p));
 
-        Instant before = Instant.now();
-
         // Choose best position to start counting
         // This could either be (1,1), (m,n) or some fixed position p,
         // which we can calculate from a N*N matrix, and also its corresponding value
@@ -56,11 +54,13 @@ public class Main2 {
         //System.out.println("startpoint: " + startpoint + " index: " + index);
         int i = startpoint;
 
+        Instant before = Instant.now();
+        int index1 = index;
         while(i >= 1 && i <= m*n){
 
             //System.out.println(index + " : " + i);
-            index -= calculateDivisors2Of(i,min,max);
-            if(index <= 0) break;
+            index1 -= calculateDivisors2Of(i,min,max);
+            if(index1 <= 0) break;
 
             i+=dir;
         }
@@ -83,17 +83,32 @@ public class Main2 {
 //            }
 //        }
         Instant after = Instant.now();
-        System.out.println(after.getEpochSecond() - before.getEpochSecond());
+        System.out.println("primes:" + (after.getEpochSecond() - before.getEpochSecond()));
+
+        before = Instant.now();
+        int index2 = index;
+        i = startpoint;
+        while(i >= 1 && i <= m*n){
+
+            //System.out.println(index + " : " + i);
+            index2 -= calculateDivisorsOf(i,min,max);
+            if(index2 <= 0) break;
+
+            i+=dir;
+        }
+        System.out.println(i);
+        after = Instant.now();
+        System.out.println("no primes:" + (after.getEpochSecond() - before.getEpochSecond()));
     }
 
     private static int calculateDivisorsOf(int i, int min, int max) {
         int nDivisors = 0;
         int incrementer = 1+i%2;
-        for(int n_i = 1; 2*n_i<Math.min(i,2*max); n_i+=incrementer){
+        for(int n_i = 1; 2*n_i<=Math.min(i,2*max); n_i+=incrementer){
             int m_i = i/n_i;
             if(i%n_i==0 && m_i <= max){
 
-                System.out.println(i + " % " + n_i + " = " + i%n_i);
+                //System.out.println(i + " % " + n_i + " = " + i%n_i);
                 if(n_i==m_i) nDivisors++;
                 else {
                     if(n_i <= min) nDivisors++;
